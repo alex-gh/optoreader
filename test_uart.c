@@ -45,13 +45,13 @@ int main(void){
     
     
 	for(;;){
-	/*
-	* Get received character from ringbuffer
-	* uart_getc() returns in the lower byte the received character and 
-	* in the higher byte (bitmask) the last receive error
-	* UART_NO_DATA is returned when no data is available.
-	*
-	*/
+		/*
+		* Get received character from ringbuffer
+		* uart_getc() returns in the lower byte the received character and 
+		* in the higher byte (bitmask) the last receive error
+		* UART_NO_DATA is returned when no data is available.
+		*
+		*/
 		c = uart_getc();
 		if ( c & UART_NO_DATA ){
 			/* 
@@ -139,7 +139,7 @@ int main(void){
 			* send received character back
 
 			*/
-			uart_putc( (unsigned char)c1 );
+		uart_putc( (unsigned char)c1 );
 		}
 	}
 }

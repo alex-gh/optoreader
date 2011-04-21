@@ -556,11 +556,11 @@ void uart1_init(unsigned int baudrate)
     UART1_CONTROL = _BV(RXCIE1)|(1<<RXEN1)|(1<<TXEN1);
     
     /* Set frame format: asynchronous, 8data, no parity, 1stop bit */   
-    #ifdef URSEL1
-    UCSR1C = (1<<URSEL1)|(3<<UCSZ10);
-    #else
-    UCSR1C = (3<<UCSZ10);
-    #endif 
+ //   #ifdef URSEL1
+    UCSR1C = (0<<UCSZ12)|(1<<UCSZ11)|(0<<UCSZ10)|(0<<UPM11)|(0<<UPM10)|(0<<USBS1);
+ //   #else
+ //   UCSR1C = (3<<UCSZ10);
+ //   #endif 
 }/* uart_init */
 
 
