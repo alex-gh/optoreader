@@ -9,7 +9,7 @@ Using Peter Fleury's UART library
 #include <avr/interrupt.h>
 //#include <avr/signal.h>
 #include <avr/pgmspace.h>
-
+#include <stdio.h>
 #include "uart.h"
 
 
@@ -44,11 +44,15 @@ int main(void){
 	uint8_t i;
 	unsigned char b;
 	unsigned char s[length+1];
-	
+	uint8_t flag;
+	uint8_t k;
+	uint8_t j;
+	char t[length+1];
 
 	for(;;){
 		i=0;
-		
+		flag=0;
+		k=0;
 		// Read a complete line from UART1
 		do{
 			b=uart1_getc();    
@@ -58,16 +62,42 @@ int main(void){
 			}       
 		}
 		while( i<length && (b!='\n'));
-
+		s[i]=0; // add terminator to string
 		
-		
-		// Send recived line to UART0
-		s[i]=0;
 		if(i>0){
-			uart_puts(s);
+			for(j=0;j<length;j++){
+				if(s[j]=='('){
+					flag = 1;
+					continue;
+				}
+				if(s[j]==')'){
+					flag = 0;
+					continue;
+				}
+				if(flag == 1){
+					t[k] = s[j];
+					k++;
+				}	
+	
+			}
+			t[k]=0; // add terminator to string
+			
+			uart_puts(t);		
 			uart_putc('\n');
 			uart_putc('\r');
-		}   
+		}
+
+
+		// Send recived line to UART0
+		/*
+		if(i>0){
+			if ((s[0] == '1') && (s[2]=='0') && (s[4]=='1') && (s[6]=='8')){ //import active power
+				s[25]=0;
+				uart_puts(s+14);
+				uart_putc('\n');
+				uart_putc('\r');
+			}
+		}   */
 		// uart_putc(uart1_getc()); //Send everything rec'd on UART1 to UART0
 	} 
 	return 0;
