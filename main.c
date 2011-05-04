@@ -4,9 +4,10 @@ Using Peter Fleury's UART library
 
 *************************************************************************/
 #include <stdlib.h>
+#include <string.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <avr/signal.h>
+//#include <avr/signal.h>
 #include <avr/pgmspace.h>
 
 #include "uart.h"
@@ -43,12 +44,12 @@ int main(void){
 	uint8_t i;
 	unsigned char b;
 	unsigned char s[length+1];
-	unsigned char buffer[10];
-
 	
 
 	for(;;){
 		i=0;
+		
+		// Read a complete line from UART1
 		do{
 			b=uart1_getc();    
 			if (b!='\n' && (b>0x20)){
@@ -60,14 +61,14 @@ int main(void){
 
 		
 		
-
+		// Send recived line to UART0
 		s[i]=0;
 		if(i>0){
 			uart_puts(s);
 			uart_putc('\n');
-			uart_putc('\r');		
+			uart_putc('\r');
 		}   
-		// uart_putc(uart1_getc());
+		// uart_putc(uart1_getc()); //Send everything rec'd on UART1 to UART0
 	} 
 	return 0;
 }
