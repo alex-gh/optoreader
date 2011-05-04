@@ -43,11 +43,11 @@ int main(void){
 	#define length 100
 	uint8_t i;
 	unsigned char b;
-	unsigned char s[length+1];
+	unsigned char str[length+1];
 	uint8_t flag;
 	uint8_t k;
 	uint8_t j;
-	char t[length+1];
+	char value[40];
 
 	for(;;){
 		i=0;
@@ -57,32 +57,32 @@ int main(void){
 		do{
 			b=uart1_getc();    
 			if (b!='\n' && (b>0x20)){
-				s[i]=b;      
+				str[i]=b;      
 				i++;
 			}       
 		}
 		while( i<length && (b!='\n'));
-		s[i]=0; // add terminator to string
+		str[i]=0; // add terminator to string
 		
 		if(i>0){
 			for(j=0;j<length;j++){
-				if(s[j]=='('){
+				if(str[j]=='('){
 					flag = 1;
 					continue;
 				}
-				if(s[j]==')'){
+				if(str[j]==')'){
 					flag = 0;
 					continue;
 				}
 				if(flag == 1){
-					t[k] = s[j];
+					value[k] = str[j];
 					k++;
 				}	
 	
 			}
-			t[k]=0; // add terminator to string
+			value[k]=0; // add terminator to string
 			
-			uart_puts(t);		
+			uart_puts(value);		
 			uart_putc('\n');
 			uart_putc('\r');
 		}
