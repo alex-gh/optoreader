@@ -39,7 +39,7 @@ int main(void){
 	*/
 	sei();
    
-	#define DEBUG
+	//#define DEBUG
 	#define length 100
 	uint8_t i;
 	unsigned char b;
@@ -47,9 +47,9 @@ int main(void){
 	uint8_t flag;
 	uint8_t k;
 	uint8_t j;
-	char value[length];
-	unsigned int test;	
-	unsigned int test_dez;
+	char val[length];
+	unsigned int value;	
+	unsigned long value_dez;
 	char s[20];
 	uint8_t retval;
 	uint8_t obis_A;
@@ -63,10 +63,10 @@ int main(void){
 		i=0;
 		flag=0;
 		k=0;
-		test=0;
-		test_dez=0;
+		value=0;
+		value_dez=0;
 	
-		value[0]=0;
+		val[0]=0;
 		str[0]=0;
 		s[0]=0;
 		// Read a complete line from UART1
@@ -80,65 +80,47 @@ int main(void){
 		while( i<length && (b!='\n'));
 		str[i]=0; // add terminator to string
 		
-		retval=sscanf(str,"%hhu-%hhu:%hhu.%hhu.%hhu*%hhu(%s)",&obis_A, &obis_B, &obis_C, &obis_D, &obis_E, &obis_F, value);
+		retval=sscanf(str,"%hhu-%hhu:%hhu.%hhu.%hhu*%hhu(%s)",&obis_A, &obis_B, &obis_C, &obis_D, &obis_E, &obis_F, val);
 
 		if(i>0){
 			for(j=0;j<length;j++){
-				if(value[j]==')'){
-					value[j]=0;
+				if(val[j]==')'){
+					val[j]=0;
 				}
 	
 			}
 
 			if( (obis_A==1) && (obis_B==0) && (obis_C==1) && (obis_D==8) ){
 				uart_puts("Bezug:            ");
-				sscanf(value,"%d.%d",&test,&test_dez);
-				itoa(test,s,10);
+				sscanf(val,"%d.%ld", &value, &value_dez);
+				itoa(value,s,10);
 				uart_puts(s);
 				uart_putc('.');
-				itoa(test_dez,s,10);
+				itoa(value_dez,s,10);
 				uart_puts(s);
 				uart_puts("\r\n");			
 			}
 			else if( (obis_A==1) && (obis_B==0) && (obis_C==2) && (obis_D==8) ){
 				uart_puts("Einspeisung:      ");
-				sscanf(value,"%d.%d",&test,&test_dez);
-				itoa(test,s,10);
+				sscanf(val,"%d.%ld", &value, &value_dez);
+				itoa(value,s,10);
 				uart_puts(s);
 				uart_putc('.');
-				itoa(test_dez,s,10);
+				itoa(value_dez,s,10);
 				uart_puts(s);
 				uart_puts("\r\n");
 			}
 			else if( (obis_A==1) && (obis_B==0) && (obis_C==41) && (obis_D==7) ){
 				uart_puts("Momentanleistung: ");
-				sscanf(value,"%d.%d",&test,&test_dez);
-				itoa(test,s,10);
+				sscanf(val,"%d.%ld", &value, &value_dez);
+				itoa(value,s,10);
 				uart_puts(s);
 				uart_putc('.');
-				itoa(test_dez,s,10);
+				itoa(value_dez,s,10);
 				uart_puts(s);
 				uart_puts("\r\n");
 			}
 
-			/*
-			retval=sscanf(value,"%d.%d",&test, &test_dez);
-			
-			//uart_puts(value);
-			
-			if (value[0]=='1') uart_puts("\r\n");
-
-			itoa(test,s,10);
-			uart_putc('$');
-			uart_puts(s);
-			if (test_dez > 0){
-				itoa(test_dez,s,10);
-				uart_putc('.');
-				uart_puts(s);
-			}
-			uart_putc('\n');
-			uart_putc('\r');
-			*/
 			
 			#ifdef DEBUG
 			itoa(obis_A,s,10);
@@ -164,17 +146,7 @@ int main(void){
 			#endif
 		}
 
-		/*
-		// Send recived line to UART0
 		
-		if(i>0){
-			if ((s[0] == '1') && (s[2]=='0') && (s[4]=='1') && (s[6]=='8')){ //import active power
-				s[25]=0;
-				uart_puts(s+14);
-				uart_putc('\n');
-				uart_putc('\r');
-			}
-		}   */
 	//uart_putc(uart1_getc()); //Send everything rec'd on UART1 to UART0
 	} 
 	return 0;
