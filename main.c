@@ -1,13 +1,13 @@
 /*************************************************************************
-Test Program sending data recieved on UART0 to UART1 and vice versa.
-Using Peter Fleury's UART library
+Test Program reciving ASCII-formatted data from smart meters on UART1, 
+parsing of data and transmitting via UART0.
 
+Tested with Hager EHZ and EasyMeter Q3DA1004, each connected to L2.
 *************************************************************************/
 #include <stdlib.h>
 #include <string.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
-//#include <avr/signal.h>
 #include <avr/pgmspace.h>
 #include <stdio.h>
 #include "uart.h"
@@ -44,8 +44,6 @@ int main(void){
 	uint8_t i;
 	unsigned char b;
 	char str[length+1];
-	uint8_t flag;
-	uint8_t k;
 	uint8_t j;
 	char val[length];
 	unsigned int value;	
@@ -61,8 +59,6 @@ int main(void){
 
 	for(;;){
 		i=0;
-		flag=0;
-		k=0;
 		value=0;
 		value_dez=0;
 	
@@ -80,17 +76,17 @@ int main(void){
 		while( i<length && (b!='\n'));
 		str[i]=0; // add terminator to string
 		
-		retval=sscanf(str,"%hhu-%hhu:%hhu.%hhu.%hhu*%hhu(%s)",&obis_A, &obis_B, &obis_C, &obis_D, &obis_E, &obis_F, val);
+		retval=sscanf(str,"%hhu-%hhu:%hhu.%hhu.%hhu*%hhu(%s)",&obis_A, &obis_B, &obis_C, &obis_D, &obis_E, &obis_F, val); //split line into OBIS numbers and data
 
 		if(i>0){
 			for(j=0;j<length;j++){
 				if(val[j]==')'){
-					val[j]=0;
+					val[j]=0; // remove ')' behind data
 				}
 	
 			}
 
-			if( (obis_A==1) && (obis_B==0) && (obis_C==1) && (obis_D==8) ){
+			if( (obis_A==1) && (obis_B==0) && (obis_C==1) && (obis_D==8) ){ //cumulative meter count of import active power (OBIS 1-0:1.8.0*255)
 				uart_puts("Bezug:            ");
 				sscanf(val,"%d.%ld", &value, &value_dez);
 				itoa(value,s,10);
@@ -100,7 +96,7 @@ int main(void){
 				uart_puts(s);
 				uart_puts("\r\n");			
 			}
-			else if( (obis_A==1) && (obis_B==0) && (obis_C==2) && (obis_D==8) ){
+			else if( (obis_A==1) && (obis_B==0) && (obis_C==2) && (obis_D==8) ){ //cumulative meter count of export active power (OBIS 1-0:2.8*255)
 				uart_puts("Einspeisung:      ");
 				sscanf(val,"%d.%ld", &value, &value_dez);
 				itoa(value,s,10);
@@ -110,7 +106,7 @@ int main(void){
 				uart_puts(s);
 				uart_puts("\r\n");
 			}
-			else if( (obis_A==1) && (obis_B==0) && (obis_C==41) && (obis_D==7) ){
+			else if( (obis_A==1) && (obis_B==0) && (obis_C==41) && (obis_D==7) ){ //current consumption of active power on L2 (OBIS 1-0:41.7.0*255)
 				uart_puts("Momentanleistung: ");
 				sscanf(val,"%d.%ld", &value, &value_dez);
 				itoa(value,s,10);
@@ -141,7 +137,7 @@ int main(void){
 			itoa(obis_F,s,10);
 			uart_puts(s);
 			uart_puts("  ");
-			uart_puts(value);
+			uart_puts(val);
 			uart_puts("\r\n");
 			#endif
 		}
