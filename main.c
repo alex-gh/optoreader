@@ -46,22 +46,22 @@ int main(void){
 	char str[length+1];
 	uint8_t j;
 	char val[length];
+	char val_dez[20];
 	unsigned int value;	
-	unsigned long value_dez;
+	unsigned int value_dez;
 	char s[20];
-	uint8_t retval;
 	uint8_t obis_A;
 	uint8_t obis_B;
 	uint8_t obis_C;
 	uint8_t obis_D;
 	uint8_t obis_E;
 	uint8_t obis_F;
-
+	uint8_t retval;
 	for(;;){
 		i=0;
 		value=0;
 		value_dez=0;
-	
+		retval=0;
 		val[0]=0;
 		str[0]=0;
 		s[0]=0;
@@ -76,7 +76,8 @@ int main(void){
 		while( i<length && (b!='\n'));
 		str[i]=0; // add terminator to string
 		
-		retval=sscanf(str,"%hhu-%hhu:%hhu.%hhu.%hhu*%hhu(%s)",&obis_A, &obis_B, &obis_C, &obis_D, &obis_E, &obis_F, val); //split line into OBIS numbers and data
+		//split line into OBIS numbers and data
+		sscanf(str,"%hhu-%hhu:%hhu.%hhu.%hhu*%hhu(%s)",&obis_A, &obis_B, &obis_C, &obis_D, &obis_E, &obis_F, val); 
 
 		if(i>0){
 			for(j=0;j<length;j++){
@@ -86,9 +87,12 @@ int main(void){
 	
 			}
 
-			if( (obis_A==1) && (obis_B==0) && (obis_C==1) && (obis_D==8) ){ //cumulative meter count of import active power (OBIS 1-0:1.8.0*255)
+			//cumulative meter count of import active power (OBIS 1-0:1.8.0*255)
+			if( (obis_A==1) && (obis_B==0) && (obis_C==1) && (obis_D==8) ){ 
 				uart_puts("Bezug:            ");
-				sscanf(val,"%d.%ld", &value, &value_dez);
+				retval=sscanf(val,"%d.%s", &value, val_dez);
+				val_dez[4]=0;
+				sscanf(val_dez, "%d", &value_dez);
 				itoa(value,s,10);
 				uart_puts(s);
 				uart_putc('.');
@@ -96,9 +100,13 @@ int main(void){
 				uart_puts(s);
 				uart_puts("\r\n");			
 			}
-			else if( (obis_A==1) && (obis_B==0) && (obis_C==2) && (obis_D==8) ){ //cumulative meter count of export active power (OBIS 1-0:2.8*255)
+
+			//cumulative meter count of export active power (OBIS 1-0:2.8*255)
+			else if( (obis_A==1) && (obis_B==0) && (obis_C==2) && (obis_D==8) ){ 
 				uart_puts("Einspeisung:      ");
-				sscanf(val,"%d.%ld", &value, &value_dez);
+				sscanf(val,"%d.%s", &value, val_dez);
+				val_dez[4]=0;
+				sscanf(val_dez, "%d", &value_dez);
 				itoa(value,s,10);
 				uart_puts(s);
 				uart_putc('.');
@@ -106,15 +114,30 @@ int main(void){
 				uart_puts(s);
 				uart_puts("\r\n");
 			}
-			else if( (obis_A==1) && (obis_B==0) && (obis_C==41) && (obis_D==7) ){ //current consumption of active power on L2 (OBIS 1-0:41.7.0*255)
+
+			//current consumption of active power on L2 (OBIS 1-0:41.7.0*255)
+			else if( (obis_A==1) && (obis_B==0) && (obis_C==41) && (obis_D==7) ){ 
 				uart_puts("Momentanleistung: ");
-				sscanf(val,"%d.%ld", &value, &value_dez);
-				itoa(value,s,10);
-				uart_puts(s);
-				uart_putc('.');
-				itoa(value_dez,s,10);
-				uart_puts(s);
-				uart_puts("\r\n");
+				retval=sscanf(val,"%d.%d", &value, &value_dez);
+
+				if(retval==1){
+					itoa(value,s,10);
+					uart_puts(s);
+					uart_putc('.');
+					itoa(value_dez,s,10);
+					uart_puts(s);
+					uart_puts("\r\n");
+				}
+				else if(retval==2){
+					val_dez[4]=0;
+					sscanf(val_dez, "%d", &value_dez);
+					itoa(value,s,10);
+					uart_puts(s);
+					uart_putc('.');
+					itoa(value_dez,s,10);
+					uart_puts(s);
+					uart_puts("\r\n");
+				}
 			}
 
 			
@@ -142,7 +165,6 @@ int main(void){
 			#endif
 		}
 
-		
 	//uart_putc(uart1_getc()); //Send everything rec'd on UART1 to UART0
 	} 
 	return 0;
