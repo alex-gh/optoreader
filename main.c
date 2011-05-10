@@ -65,6 +65,7 @@ int main(void){
 		val[0]=0;
 		str[0]=0;
 		s[0]=0;
+
 		// Read a complete line from UART1
 		do{
 			b=uart1_getc();    
@@ -90,29 +91,57 @@ int main(void){
 			//cumulative meter count of import active power (OBIS 1-0:1.8.0*255)
 			if( (obis_A==1) && (obis_B==0) && (obis_C==1) && (obis_D==8) ){ 
 				uart_puts("Bezug:            ");
-				retval=sscanf(val,"%d.%s", &value, val_dez);
-				val_dez[4]=0;
-				sscanf(val_dez, "%d", &value_dez);
-				itoa(value,s,10);
-				uart_puts(s);
-				uart_putc('.');
-				itoa(value_dez,s,10);
-				uart_puts(s);
-				uart_puts("\r\n");			
+				retval=sscanf(val,"%d.%d", &value, &value_dez);
+
+				if(retval==1){
+
+					itoa(value,s,10);
+					uart_puts(s);
+					uart_putc('.');
+					itoa(value_dez,s,10);
+					uart_puts(s);
+					uart_puts("\r\n");
+				}
+				else if(retval==2){
+					if(strlen(val_dez)-4>2){
+						val_dez[3]=0;
+					}
+					sscanf(val_dez, "%d", &value_dez);
+					itoa(value,s,10);
+					uart_puts(s);
+					uart_putc('.');
+					itoa(value_dez,s,10);
+					uart_puts(s);
+					uart_puts("\r\n");
+				}
 			}
 
 			//cumulative meter count of export active power (OBIS 1-0:2.8*255)
 			else if( (obis_A==1) && (obis_B==0) && (obis_C==2) && (obis_D==8) ){ 
 				uart_puts("Einspeisung:      ");
-				sscanf(val,"%d.%s", &value, val_dez);
-				val_dez[4]=0;
-				sscanf(val_dez, "%d", &value_dez);
-				itoa(value,s,10);
-				uart_puts(s);
-				uart_putc('.');
-				itoa(value_dez,s,10);
-				uart_puts(s);
-				uart_puts("\r\n");
+				retval=sscanf(val,"%d.%d", &value, &value_dez);
+
+				if(retval==1){
+
+					itoa(value,s,10);
+					uart_puts(s);
+					uart_putc('.');
+					itoa(value_dez,s,10);
+					uart_puts(s);
+					uart_puts("\r\n");
+				}
+				else if(retval==2){
+					if(strlen(val_dez)-2>3){
+						val_dez[2]=0;
+					}
+					sscanf(val_dez, "%d", &value_dez);
+					itoa(value,s,10);
+					uart_puts(s);
+					uart_putc('.');
+					itoa(value_dez,s,10);
+					uart_puts(s);
+					uart_puts("\r\n");
+				}
 			}
 
 			//current consumption of active power on L2 (OBIS 1-0:41.7.0*255)
@@ -129,7 +158,9 @@ int main(void){
 					uart_puts("\r\n");
 				}
 				else if(retval==2){
-					val_dez[4]=0;
+					if(strlen(val_dez)-2>3){
+						val_dez[2]=0;
+					}
 					sscanf(val_dez, "%d", &value_dez);
 					itoa(value,s,10);
 					uart_puts(s);
