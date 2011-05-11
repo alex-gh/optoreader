@@ -21,9 +21,9 @@ Tested with Hager EHZ and EasyMeter Q3DA1004, each connected to L2.
 /* 9600 baud */
 #define UART_BAUD_RATE      9600      
 
+void print_value(unsigned int value, unsigned long value_dez); 
 
-int main(void){
-    
+int main(void){    
 	/*
 	*  Initialize UART library, pass baudrate and AVR cpu clock
 	*  with the macro 
@@ -38,17 +38,17 @@ int main(void){
 	* now enable interrupt, since UART library is interrupt controlled
 	*/
 	sei();
-   
+	
+  	
+	
 	//#define DEBUG
 	#define length 100
 	uint8_t i;
 	unsigned char b;
 	char str[length+1];
-	uint8_t j;
 	char val[length];
-	char val_dez[20];
 	unsigned int value;	
-	unsigned int value_dez;
+	unsigned long value_dez;
 	char s[20];
 	uint8_t obis_A;
 	uint8_t obis_B;
@@ -78,126 +78,58 @@ int main(void){
 		str[i]=0; // add terminator to string
 		
 		//split line into OBIS numbers and data
-		sscanf(str,"%hhu-%hhu:%hhu.%hhu.%hhu*%hhu(%s)",&obis_A, &obis_B, &obis_C, &obis_D, &obis_E, &obis_F, val); 
-
+		retval=sscanf(str,"%hhu-%hhu:%hhu.%hhu.%hhu*%hhu(%d.%lu%*s)",&obis_A, &obis_B, &obis_C, &obis_D, &obis_E, &obis_F, &value, &value_dez); 
+		
 		if(i>0){
-			for(j=0;j<length;j++){
-				if(val[j]==')'){
-					val[j]=0; // remove ')' behind data
-				}
-	
-			}
-
 			//cumulative meter count of import active power (OBIS 1-0:1.8.0*255)
 			if( (obis_A==1) && (obis_B==0) && (obis_C==1) && (obis_D==8) ){ 
-				uart_puts("Bezug:            ");
-				retval=sscanf(val,"%d.%d", &value, &value_dez);
+				uart_puts("Bezugzählerstand:      ");
 
-				if(retval==1){
-
-					itoa(value,s,10);
-					uart_puts(s);
-					uart_putc('.');
-					itoa(value_dez,s,10);
-					uart_puts(s);
-					uart_puts("\r\n");
-				}
-				else if(retval==2){
-					if(strlen(val_dez)-4>2){
-						val_dez[3]=0;
-					}
-					sscanf(val_dez, "%d", &value_dez);
-					itoa(value,s,10);
-					uart_puts(s);
-					uart_putc('.');
-					itoa(value_dez,s,10);
-					uart_puts(s);
-					uart_puts("\r\n");
-				}
+				if(retval>0) print_value(value, value_dez);
 			}
-
+			
 			//cumulative meter count of export active power (OBIS 1-0:2.8*255)
 			else if( (obis_A==1) && (obis_B==0) && (obis_C==2) && (obis_D==8) ){ 
-				uart_puts("Einspeisung:      ");
-				retval=sscanf(val,"%d.%d", &value, &value_dez);
+				uart_puts("Produktionzählerstand: ");
 
-				if(retval==1){
+				if(retval>0) print_value(value, value_dez);
+			} 
 
-					itoa(value,s,10);
-					uart_puts(s);
-					uart_putc('.');
-					itoa(value_dez,s,10);
-					uart_puts(s);
-					uart_puts("\r\n");
-				}
-				else if(retval==2){
-					if(strlen(val_dez)-2>3){
-						val_dez[2]=0;
-					}
-					sscanf(val_dez, "%d", &value_dez);
-					itoa(value,s,10);
-					uart_puts(s);
-					uart_putc('.');
-					itoa(value_dez,s,10);
-					uart_puts(s);
-					uart_puts("\r\n");
-				}
+			//current consumption of active power on L1 (OBIS 1-0:21.7.0*255)
+			else if( (obis_A==1) && (obis_B==0) && (obis_C==21) && (obis_D==7) ){ 
+				uart_puts("Momentanleistung L1:   ");
+
+				if(retval>0) print_value(value, value_dez);
 			}
 
 			//current consumption of active power on L2 (OBIS 1-0:41.7.0*255)
 			else if( (obis_A==1) && (obis_B==0) && (obis_C==41) && (obis_D==7) ){ 
-				uart_puts("Momentanleistung: ");
-				retval=sscanf(val,"%d.%d", &value, &value_dez);
+				uart_puts("Momentanleistung L2:   ");
 
-				if(retval==1){
-					itoa(value,s,10);
-					uart_puts(s);
-					uart_putc('.');
-					itoa(value_dez,s,10);
-					uart_puts(s);
-					uart_puts("\r\n");
-				}
-				else if(retval==2){
-					if(strlen(val_dez)-2>3){
-						val_dez[2]=0;
-					}
-					sscanf(val_dez, "%d", &value_dez);
-					itoa(value,s,10);
-					uart_puts(s);
-					uart_putc('.');
-					itoa(value_dez,s,10);
-					uart_puts(s);
-					uart_puts("\r\n");
-				}
+				if(retval>0) print_value(value, value_dez);
 			}
 
-			
-			#ifdef DEBUG
-			itoa(obis_A,s,10);
-			uart_puts(s);
-			uart_putc('-');
-			itoa(obis_B,s,10);
-			uart_puts(s);
-			uart_putc(':');
-			itoa(obis_C,s,10);
-			uart_puts(s);
-			uart_putc('.');
-			itoa(obis_D,s,10);
-			uart_puts(s);
-			uart_putc('.');
-			itoa(obis_E,s,10);
-			uart_puts(s);
-			uart_putc('*');
-			itoa(obis_F,s,10);
-			uart_puts(s);
-			uart_puts("  ");
-			uart_puts(val);
-			uart_puts("\r\n");
-			#endif
-		}
+			//current consumption of active power on L3 (OBIS 1-0:61.7.0*255)
+			else if( (obis_A==1) && (obis_B==0) && (obis_C==61) && (obis_D==7) ){ 
+				uart_puts("Momentanleistung L3:   ");
 
-	//uart_putc(uart1_getc()); //Send everything rec'd on UART1 to UART0
+				if(retval>0) print_value(value, value_dez);
+			}
+		} 
+
+		//uart_putc(uart1_getc()); //Send everything rec'd on UART1 to UART0
 	} 
 	return 0;
+
+}
+
+void print_value(unsigned int value, unsigned long value_dez){
+	char s[20];
+	sprintf(s,"%d",value);
+	uart_puts(s);
+	uart_putc('.');
+	sprintf(s,"%lu",value_dez);
+	uart_puts(s);
+	uart_puts("\r\n");
 }
 
